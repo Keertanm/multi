@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lock2 = PTHREAD_MUTEX_INITIALIZER;
+pthread_barrier_t both_locked;
+void *thread_function(void *arg) {
+ int id = *(int *)arg;
+ if (id == 0) {
+ pthread_mutex_lock(&lock1);
+ pthread_barrier_wait(&both_locked);
+ printf("Thread 0: Waiting for lock 2...\n");
+ int result = pthread_mutex_trylock(&lock2);
+ pthread_barrier_wait(&both_locked);
+ if (result != 0)
+ printf("Thread 0: Failed to acquire lock 2, releasing lock 1.\n");
+ else
+ pthread_mutex_unlock(&lock2);
+ pthread_mutex_unlock(&lock1);
+ } else {
+ pthread_mutex_lock(&lock2);
+ pthread_barrier_wait(&both_locked);
+ printf("Thread 1: Waiting for lock 1...\n");
+ int result = pthread_mutex_trylock(&lock1);
+ pthread_barrier_wait(&both_locked);
+ if (result != 0)
+ printf("Thread 1: Failed to acquire lock 1, releasing lock 2.\n");
+ else
+ pthread_mutex_unlock(&lock1);
+ pthread_mutex_unlock(&lock2);
+ }
+ return NULL;
+}
+int main(void) {
+ pthread_t threads[2];
+ int ids[2] = {0, 1};
+ pthread_barrier_init(&both_locked, NULL, 2);
+ pthread_create(&threads[0], NULL, thread_function, &ids[0]);
+ pthread_create(&threads[1], NULL, thread_function, &ids[1]);
+ pthread_join(threads[0], NULL);
+ pthread_join(threads[1], NULL);
+ pthread_barrier_destroy(&both_locked);
+ pthread_mutex_destroy(&lock1);
+ pthread_mutex_destroy(&lock2);
+ return 0;
+}
+
+Execution steps:
+1. Save the code as p11.c
+2. Compile: gcc p11.c -o p11 -pthread
+3. Run: ./p11

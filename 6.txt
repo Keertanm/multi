@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <pthread.h>
+#define SIZE 100
+#define THREADS 4
+int a[SIZE];
+int temp[SIZE];
+void merge(int left, int mid, int right) {
+ int i = left, j = mid + 1, k = left;
+ while (i <= mid && j <= right) {
+ if (a[i] <= a[j]) temp[k++] = a[i++];
+ else temp[k++] = a[j++];
+ }
+ while (i <= mid) temp[k++] = a[i++];
+ while (j <= right) temp[k++] = a[j++];
+ for (i = left; i <= right; i++)
+ a[i] = temp[i];
+}
+void merge_sort(int left, int right) {
+ if (left < right) {
+ int mid = (left + right) / 2;
+ merge_sort(left, mid);
+ merge_sort(mid + 1, right);
+ merge(left, mid, right);
+ }
+}
+void *sort_part(void *arg) {
+ int id = *(int *)arg;
+ int left = id * (SIZE / THREADS);
+ int right = left + (SIZE / THREADS) - 1;
+ merge_sort(left, right);
+ return NULL;
+}
+int main(void) {
+ pthread_t threads[THREADS];
+ int ids[THREADS];
+ for (int i = 0; i < SIZE; i++)
+ a[i] = SIZE - i;
+ for (int i = 0; i < THREADS; i++) {
+ ids[i] = i;
+ pthread_create(&threads[i], NULL, sort_part, &ids[i]);
+ }
+ for (int i = 0; i < THREADS; i++)
+ pthread_join(threads[i], NULL);
+ merge(0, 24, 49);
+ merge(50, 74, 99);
+ merge(0, 49, 99);
+ printf("Sorted Array:\n");
+ for (int i = 0; i < SIZE; i++)
+ printf("%d ", a[i]);
+ printf("\n");
+ return 0;
+}
+
+Execution steps:
+1. Save the code as p6.c
+2. Compile: gcc p6.c -o p6 -pthread
+3. Run: ./p6

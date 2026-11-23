@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <omp.h>
+void blur(void) {
+ printf("Blurring the image...\n");
+}
+void sharpen(void) {
+ printf("Sharpening the image...\n");
+}
+void contrast(void) {
+ printf("Adjusting contrast...\n");
+}
+void resize(void) {
+ printf("Resizing the image...\n");
+}
+int main(void) {
+ #pragma omp parallel
+ {
+ #pragma omp single
+ {
+ #pragma omp task
+ blur();
+ #pragma omp task
+ sharpen();
+ #pragma omp task
+ contrast();
+ #pragma omp task
+ resize();
+ }
+ }
+ return 0;
+}
+
+Execution steps:
+1. Save the code as p10.c
+2. Compile: gcc p10.c -o p10 -fopenmp
+3. Run: ./p10

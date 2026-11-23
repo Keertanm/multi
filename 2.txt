@@ -1,0 +1,81 @@
+A. OpenMP (omp_example.c)
+
+#include <stdio.h>
+#include <omp.h>
+int main(void) {
+ #pragma omp parallel
+ {
+ printf("Hello from thread %d\n", omp_get_thread_num());
+ }
+ return 0;
+}
+
+Execution steps:
+1. Check GCC: gcc --version (if needed, install build-essential)
+2. Save the code as omp_example.c
+3. Compile: gcc -fopenmp omp_example.c -o omp_example
+4. Run: OMP_NUM_THREADS=4 ./omp_example
+
+B. Pthreads (pthread_example.c)
+
+#include <stdio.h>
+#include <pthread.h>
+void *print_message(void *arg) {
+ int id = *(int *)arg;
+ printf("Hello from thread %d\n", id);
+ return NULL;
+}
+int main(void) {
+ pthread_t threads[5];
+ int ids[5];
+ for (int i = 0; i < 5; i++) {
+ ids[i] = i;
+ pthread_create(&threads[i], NULL, print_message, &ids[i]);
+ }
+ for (int i = 0; i < 5; i++)
+ pthread_join(threads[i], NULL);
+ return 0;
+}
+
+Execution steps:
+1. Save the code as pthread_example.c
+2. Compile: gcc pthread_example.c -o pthread_example -pthread
+3. Run: ./pthread_example
+
+C. CUDA (cuda_example.cu)
+
+#include <stdio.h>
+__global__ void helloFromGPU(void) {
+ printf("Hello from GPU thread %d\n", threadIdx.x);
+}
+int main(void) {
+ helloFromGPU<<<1, 5>>>();
+ cudaDeviceSynchronize();
+ return 0;
+}
+
+Execution steps:
+1. Install the CUDA Toolkit for your Linux distribution.
+2. Save the code as cuda_example.cu
+3. Compile: nvcc cuda_example.cu -o cuda_example
+4. Run: ./cuda_example
+
+D. MPI (mpi_example.c)
+
+#include <mpi.h>
+#include <stdio.h>
+int main(int argc, char **argv) {
+ int rank, size;
+ MPI_Init(&argc, &argv);
+ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+ MPI_Comm_size(MPI_COMM_WORLD, &size);
+ printf("Hello from process %d out of %d processes\n", rank, size);
+ MPI_Finalize();
+ return 0;
+}
+
+Execution steps:
+1. Install MPICH: sudo apt update && sudo apt install mpich
+2. Save the code as mpi_example.c
+3. Compile: mpicc mpi_example.c -o mpi_example
+4. Run: mpirun -np 5 ./mpi_example
